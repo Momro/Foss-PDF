@@ -64,7 +64,7 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        variant.outputs.all { output ->
+        variant.outputs.forEach { output ->
             (output as? com.android.build.api.variant.impl.VariantOutputImpl)?.outputFileName = "Foss-PDF.apk"
         }
     }
