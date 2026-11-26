@@ -1,0 +1,1 @@
+Simple open-source PDF reader for Android

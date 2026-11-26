@@ -1,0 +1,1 @@
+Initial release: open PDFs, swipe paging, double-tap zoom, full-text search, share, rename.

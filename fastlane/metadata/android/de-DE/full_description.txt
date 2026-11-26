@@ -1,0 +1,12 @@
+Foss PDF ist ein einfacher, datenschutzfreundlicher Open-Source-PDF-Reader für Android.
+
+Funktionen:
+- PDFs über den System-Dateipicker öffnen, inkl. Liste der zuletzt geöffneten Dateien
+- Per Wischgesten durch das Dokument blättern
+- Doppel-Tipp zoomt die Seite, einfacher Tap blendet die Bedienung aus/ein
+- Volltextsuche mit Trefferzähler, Vor/Zurück und Hervorhebung im Dokument
+- PDFs über das Android-Share-Sheet teilen
+- PDFs direkt umbenennen
+
+Keine Berechtigungen nötig, kein Netzwerkzugriff, kein Tracking, keine Werbung.
+Vollständig Open Source (GPL-3.0).

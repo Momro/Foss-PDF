@@ -1,8 +1,12 @@
 name: Build & Release
 
+# Every push to any branch -> test release (pre-release, tag test-<run-number>).
+# Push of a tag vX.Y.Z      -> normal release (tag vX.Y.Z, not a pre-release),
+#                              this is what F-Droid's UpdateCheckMode follows.
 on:
   push:
     branches: ["**"]
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -53,8 +57,8 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: test-${{ github.run_number }}
-          name: Test-Release #${{ github.run_number }} (${{ github.ref_name }}, ${{ github.sha }})
-          prerelease: true
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('test-{0}', github.run_number) }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || format('Test-Release {0} ({1}, {2})', github.run_number, github.ref_name, github.sha) }}
+          prerelease: ${{ github.ref_type != 'tag' }}
           generate_release_notes: true
           files: ${{ env.APK_PATH }}

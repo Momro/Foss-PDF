@@ -1,0 +1,1 @@
+Erstes Release: PDFs öffnen, Wischen zum Blättern, Doppel-Tipp-Zoom, Volltextsuche, Teilen, Umbenennen.

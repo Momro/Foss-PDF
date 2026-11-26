@@ -1,0 +1,29 @@
+# Draft of the fdroiddata metadata file for F-Droid.
+# Submit as metadata/dev.momro.fosspdf.yml in a merge request to
+# https://gitlab.com/fdroid/fdroiddata (label: "New App").
+# Before the first submission, create tag v0.1.0 (must match versionName
+# in app/build.gradle.kts) and replace the commit with its full hash.
+Categories:
+  - Reading
+License: GPL-3.0-only
+AuthorName: Momro
+SourceCode: https://github.com/Momro/Foss-PDF
+IssueTracker: https://github.com/Momro/Foss-PDF/issues
+AutoName: Foss PDF
+
+RepoType: git
+Repo: https://github.com/Momro/Foss-PDF.git
+
+Builds:
+  - versionName: 0.1.0
+    versionCode: 1
+    commit: v0.1.0
+    gradle:
+      - release
+
+AutoUpdateMode: Version
+# only real releases (vX.Y.Z) are picked up, test-N tags are ignored
+UpdateCheckMode: Tags ^v[0-9.]+$
+
+CurrentVersion: 0.1.0
+CurrentVersionCode: 1
