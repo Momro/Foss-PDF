@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Foss PDF</string>
+    <string name="open_pdf">PDF öffnen</string>
+    <string name="recently_opened">Zuletzt geöffnet</string>
+    <string name="no_recent_files">Noch keine PDFs geöffnet</string>
+    <string name="search_hint">Im Dokument suchen…</string>
+    <string name="no_results">Keine Treffer</string>
+    <string name="hit_counter">%1$d / %2$d</string>
+    <string name="search">Suchen</string>
+    <string name="back">Zurück</string>
+    <string name="previous_result">Vorheriger Treffer</string>
+    <string name="next_result">Nächster Treffer</string>
+    <string name="share">Teilen</string>
+    <string name="share_pdf">PDF teilen</string>
+    <string name="rename">Umbenennen</string>
+    <string name="rename_pdf">PDF umbenennen</string>
+    <string name="new_name">Neuer Name</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="ok">OK</string>
+    <string name="page_indicator">Seite %1$d von %2$d</string>
+    <string name="error_open_pdf">Diese PDF konnte nicht geöffnet werden</string>
+    <string name="error_rename">Datei konnte nicht umbenannt werden</string>
+</resources>

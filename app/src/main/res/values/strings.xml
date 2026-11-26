@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Foss PDF</string>
+    <string name="open_pdf">Open PDF</string>
+    <string name="recently_opened">Recently opened</string>
+    <string name="no_recent_files">No PDFs opened yet</string>
+    <string name="search_hint">Search in document…</string>
+    <string name="no_results">No results</string>
+    <string name="hit_counter">%1$d / %2$d</string>
+    <string name="search">Search</string>
+    <string name="back">Back</string>
+    <string name="previous_result">Previous result</string>
+    <string name="next_result">Next result</string>
+    <string name="share">Share</string>
+    <string name="share_pdf">Share PDF</string>
+    <string name="rename">Rename</string>
+    <string name="rename_pdf">Rename PDF</string>
+    <string name="new_name">New name</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="page_indicator">Page %1$d of %2$d</string>
+    <string name="error_open_pdf">Could not open this PDF</string>
+    <string name="error_rename">Could not rename the file</string>
+</resources>
