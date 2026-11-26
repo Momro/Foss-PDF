@@ -27,10 +27,13 @@ jobs:
           cache: gradle
 
       - name: Decode signing keystore (if configured)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/fosspdf-release.p12"
-          echo "KEYSTORE_PATH=$RUNNER_TEMP/fosspdf-release.p12" >> "$GITHUB_ENV"
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/fosspdf-release.p12"
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/fosspdf-release.p12" >> "$GITHUB_ENV"
+          fi
 
       - name: Test & build APK
         env:
