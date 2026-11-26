@@ -69,7 +69,7 @@ class PdfViewerViewModel(
                         loading = false
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 withContext(Dispatchers.Main) {
                     loadError = true
                     loading = false
@@ -107,7 +107,7 @@ class PdfViewerViewModel(
                 val image = bitmap.asImageBitmap()
                 if (highlights.isEmpty()) bitmapCache.put(key, image)
                 image
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 null
             }
         }
@@ -123,7 +123,11 @@ class PdfViewerViewModel(
             searching = true
             try {
                 val doc = document ?: return@launch
-                val result = searchDocument(doc, rawQuery.trim())
+                val result = try {
+                    searchDocument(doc, rawQuery.trim())
+                } catch (e: Throwable) {
+                    emptyList()
+                }
                 withContext(Dispatchers.Main) {
                     hits.clear()
                     hits.addAll(result)
@@ -178,10 +182,15 @@ class PdfViewerViewModel(
         }
     }
 
-    private fun displayName(): String =
+    private fun displayName(): String = try {
         DocumentFile.fromSingleUri(appContext, uri)?.name?.takeIf { it.isNotBlank() }
-            ?: uri.lastPathSegment?.substringAfterLast('/')?.ifBlank { null }
-            ?: "PDF"
+            ?: fallbackName()
+    } catch (_: Throwable) {
+        fallbackName()
+    }
+
+    private fun fallbackName(): String =
+        uri.lastPathSegment?.substringAfterLast('/')?.ifBlank { null } ?: "PDF"
 
     override fun onCleared() {
         try {

@@ -166,16 +166,18 @@ fun PdfViewerScreen(
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    Slider(
-                        value = pagerState.currentPage.toFloat(),
-                        onValueChange = { value ->
-                            scope.launch { pagerState.animateScrollToPage(value.toInt()) }
-                        },
-                        valueRange = 0f..(vm.pageCount - 1).toFloat(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    )
+                    if (vm.pageCount > 1) {
+                        Slider(
+                            value = pagerState.currentPage.toFloat(),
+                            onValueChange = { value ->
+                                scope.launch { pagerState.animateScrollToPage(value.toInt()) }
+                            },
+                            valueRange = 0f..(vm.pageCount - 1).toFloat(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                        )
+                    }
                 }
             }
         },
@@ -189,7 +191,7 @@ fun PdfViewerScreen(
         ) {
             when {
                 vm.loading -> CircularProgressIndicator()
-                vm.loadError -> Text(stringResource(R.string.error_open_pdf))
+                vm.loadError || vm.pageCount == 0 -> Text(stringResource(R.string.error_open_pdf))
                 else -> HorizontalPager(state = pagerState) { page ->
                     PageItem(
                         vm = vm,
