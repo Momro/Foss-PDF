@@ -51,12 +51,6 @@ android {
         compose = true
     }
 
-    applicationVariants.all {
-        outputs.all {
-            outputFileName = "Foss-PDF.apk"
-        }
-    }
-
     // F-Droid requirement: no encrypted dependency metadata block in the APK
     dependenciesInfo {
         includeInApk = false
@@ -66,6 +60,14 @@ android {
 
 kotlin {
     jvmToolchain(17)
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.all { output ->
+            output.outputFileName = "Foss-PDF.apk"
+        }
+    }
 }
 
 dependencies {
