@@ -46,17 +46,18 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           build_ok=0
+          APK_DIR=""
           for attempt in 1 2 3; do
             echo "build attempt $attempt"
             if ./gradlew :app:testDebugUnitTest; then
               if [ -n "$KEYSTORE_PATH" ]; then
                 if ./gradlew :app:assembleRelease; then
-                  echo "APK_PATH=app/build/outputs/apk/release/Foss-PDF.apk" >> "$GITHUB_ENV"
+                  APK_DIR=app/build/outputs/apk/release
                   build_ok=1
                 fi
               else
                 if ./gradlew :app:assembleDebug; then
-                  echo "APK_PATH=app/build/outputs/apk/debug/Foss-PDF.apk" >> "$GITHUB_ENV"
+                  APK_DIR=app/build/outputs/apk/debug
                   build_ok=1
                 fi
               fi
@@ -65,6 +66,10 @@ jobs:
             sleep 30
           done
           [ "$build_ok" = "1" ] || exit 1
+          if [ ! -f "$APK_DIR/Foss-PDF.apk" ]; then
+            cp "$APK_DIR"/*.apk "$APK_DIR/Foss-PDF.apk"
+          fi
+          echo "APK_PATH=$APK_DIR/Foss-PDF.apk" >> "$GITHUB_ENV"
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
