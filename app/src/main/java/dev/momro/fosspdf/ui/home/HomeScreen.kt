@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -35,6 +36,7 @@ import androidx.core.net.toUri
 import dev.momro.fosspdf.R
 import dev.momro.fosspdf.data.RecentRepository
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
     val context = LocalContext.current

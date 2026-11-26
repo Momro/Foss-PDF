@@ -2,7 +2,6 @@ package dev.momro.fosspdf.pdf
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -88,7 +87,7 @@ class PdfViewerViewModel(
             val doc = document ?: return@withContext null
             val r = renderer ?: return@withContext null
             try {
-                val bitmap = r.renderImage(page, scale, Bitmap.Config.ARGB_8888)
+                val bitmap = r.renderImage(page, scale)
                 if (highlights.isNotEmpty()) {
                     val canvas = Canvas(bitmap)
                     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

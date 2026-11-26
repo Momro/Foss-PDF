@@ -50,6 +50,12 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // F-Droid requirement: no encrypted dependency metadata block in the APK
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
 }
 
 kotlin {
