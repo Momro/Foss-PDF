@@ -238,13 +238,18 @@ private fun PageItem(
         val renderScale = fit * if (zoomed) ZOOM_SCALE else BASE_RENDER_SCALE
         val searchVersion = vm.hits.size
         var bitmap by remember(page, zoomed) { mutableStateOf<ImageBitmap?>(null) }
+        var failed by remember(page, zoomed) { mutableStateOf(false) }
 
         LaunchedEffect(page, zoomed, searchVersion) {
-            bitmap = vm.renderPage(page, renderScale, vm.highlightsForPage(page))
+            failed = false
+            val result = vm.renderPage(page, renderScale, vm.highlightsForPage(page))
+            bitmap = result
+            if (result == null) failed = true
         }
 
         ZoomablePage(
             bitmap = bitmap,
+            failed = failed,
             zoomed = zoomed,
             onZoomToggle = { zoomed = !zoomed },
             onSingleTap = onSingleTap,

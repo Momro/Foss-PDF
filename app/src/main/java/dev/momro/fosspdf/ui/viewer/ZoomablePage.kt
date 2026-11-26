@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,13 +22,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.momro.fosspdf.R
 
 const val ZOOM_SCALE = 2.5f
 
 @Composable
 fun ZoomablePage(
     bitmap: ImageBitmap?,
+    failed: Boolean,
     zoomed: Boolean,
     onZoomToggle: () -> Unit,
     onSingleTap: () -> Unit,
@@ -58,8 +62,8 @@ fun ZoomablePage(
             },
         contentAlignment = Alignment.Center,
     ) {
-        if (bitmap != null) {
-            Image(
+        when {
+            bitmap != null -> Image(
                 bitmap = bitmap,
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
@@ -72,8 +76,8 @@ fun ZoomablePage(
                         translationY = offset.y,
                     ),
             )
-        } else {
-            CircularProgressIndicator(modifier = Modifier.size(48.dp))
+            failed -> Text(stringResource(R.string.error_render_page))
+            else -> CircularProgressIndicator(modifier = Modifier.size(48.dp))
         }
     }
 }
