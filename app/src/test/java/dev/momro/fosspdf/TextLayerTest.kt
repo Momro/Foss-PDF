@@ -54,7 +54,7 @@ class TextLayerTest {
     fun `out of order spans on a line are sorted by x`() {
         val runs = buildTextRuns(
             listOf(
-                TextSpan("b", 20f, 100f, 5f, 10f),
+                TextSpan("b", 15f, 100f, 5f, 10f),
                 TextSpan("a", 10f, 100f, 5f, 10f),
             )
         )
