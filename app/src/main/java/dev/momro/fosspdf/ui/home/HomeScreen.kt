@@ -1,7 +1,9 @@
 package dev.momro.fosspdf.ui.home
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -42,26 +44,69 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
     val context = LocalContext.current
     val recents = remember { RecentRepository(context.applicationContext) }
     val recentList by recents.recents.collectAsState(initial = emptyList())
+    val versionName = remember {
+        try {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?"
+        } catch (_: Exception) {
+            "?"
+        }
+    }
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    val handlePicked: (Uri?) -> Unit = { uri ->
         if (uri != null) {
             try {
                 context.contentResolver.takePersistableUriPermission(
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
-            } catch (_: SecurityException) {
+            } catch (_: Exception) {
             }
             onOpenPdf(uri)
+        }
+    }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), handlePicked)
+    val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent(), handlePicked)
+
+    val launchPicker = {
+        try {
+            picker.launch(arrayOf("*/*"))
+        } catch (_: ActivityNotFoundException) {
+            try {
+                getContent.launch("*/*")
+            } catch (_: Exception) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.error_picker),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        } catch (_: Exception) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.error_picker),
+                Toast.LENGTH_LONG,
+            ).show()
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.app_name)) })
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(stringResource(R.string.app_name))
+                        Text(
+                            text = "v$versionName",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+            )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { picker.launch(arrayOf("application/pdf")) }) {
+            FloatingActionButton(onClick = launchPicker) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.open_pdf))
             }
         },

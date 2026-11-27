@@ -21,6 +21,9 @@ import com.tom_roush.pdfbox.rendering.PDFRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.InputStream
 
 class PdfViewerViewModel(
     private val appContext: Context,
@@ -30,10 +33,15 @@ class PdfViewerViewModel(
     private var document: PDDocument? = null
     private var renderer: PDFRenderer? = null
     private val bitmapCache = LruCache<String, ImageBitmap>(6)
+    private val textRunsCache = HashMap<Int, List<TextRun>>()
 
     var loading by mutableStateOf(true)
         private set
     var loadError by mutableStateOf(false)
+        private set
+    var loadErrorDetail by mutableStateOf("")
+        private set
+    var lastRenderError by mutableStateOf("")
         private set
     var pageCount by mutableStateOf(0)
         private set
@@ -54,8 +62,9 @@ class PdfViewerViewModel(
         fileName = displayName()
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                appContext.contentResolver.openInputStream(uri).use { stream ->
-                    val doc = PDDocument.load(checkNotNull(stream))
+                val input = openStream() ?: throw FileNotFoundException("cannot open $uri")
+                input.use { stream ->
+                    val doc = PDDocument.load(stream)
                     document = doc
                     renderer = PDFRenderer(doc)
                     val sizes = ArrayList<Pair<Float, Float>>(doc.numberOfPages)
@@ -72,6 +81,7 @@ class PdfViewerViewModel(
             } catch (e: Throwable) {
                 withContext(Dispatchers.Main) {
                     loadError = true
+                    loadErrorDetail = e.toString()
                     loading = false
                 }
             }
@@ -108,9 +118,37 @@ class PdfViewerViewModel(
                 if (highlights.isEmpty()) bitmapCache.put(key, image)
                 image
             } catch (e: Throwable) {
+                lastRenderError = e.toString()
                 null
             }
         }
+
+    suspend fun textRunsForPage(page: Int): List<TextRun> = withContext(Dispatchers.IO) {
+        synchronized(textRunsCache) { textRunsCache[page] }?.let { return@withContext it }
+        val doc = document ?: return@withContext emptyList()
+        val runs = try {
+            extractTextRuns(doc, page)
+        } catch (_: Throwable) {
+            emptyList()
+        }
+        synchronized(textRunsCache) { textRunsCache[page] = runs }
+        runs
+    }
+
+    private fun openStream(): InputStream? {
+        try {
+            appContext.contentResolver.openInputStream(uri)?.let { return it }
+        } catch (_: Throwable) {
+        }
+        val path = uri.takeIf { it.scheme.equals("file", ignoreCase = true) }?.path
+        if (path != null) {
+            try {
+                return FileInputStream(path)
+            } catch (_: Throwable) {
+            }
+        }
+        return null
+    }
 
     fun runSearch(rawQuery: String) {
         query = rawQuery

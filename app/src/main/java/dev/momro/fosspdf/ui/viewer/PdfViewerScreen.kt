@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -48,14 +50,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.momro.fosspdf.R
 import dev.momro.fosspdf.data.RecentRepository
 import dev.momro.fosspdf.pdf.PdfViewerViewModel
+import dev.momro.fosspdf.pdf.TextRun
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -83,6 +88,8 @@ fun PdfViewerScreen(
 
     var chromeVisible by remember { mutableStateOf(true) }
     var renameDialog by remember { mutableStateOf(false) }
+    var selectionMode by remember { mutableStateOf(false) }
+    var selectionPage by remember { mutableStateOf(0) }
 
     val pagerState = rememberPagerState(pageCount = { vm.pageCount })
 
@@ -96,9 +103,19 @@ fun PdfViewerScreen(
 
     LaunchedEffect(vm.currentPage) {
         val target = vm.currentPage
-        if (target != pagerState.currentPage && target in 0 until vm.pageCount) {
-            pagerState.animateScrollToPage(target)
+        if (target in 0 until vm.pageCount) {
+            if (selectionMode) {
+                if (target != selectionPage) selectionPage = target
+            } else if (target != pagerState.currentPage) {
+                pagerState.animateScrollToPage(target)
+            }
         }
+    }
+
+    val currentPage = if (selectionMode) {
+        selectionPage.coerceIn(0, (vm.pageCount - 1).coerceAtLeast(0))
+    } else {
+        pagerState.currentPage
     }
 
     val showChrome = chromeVisible || vm.loadError
@@ -120,6 +137,15 @@ fun PdfViewerScreen(
                             }
                         },
                         actions = {
+                            IconButton(onClick = {
+                                selectionMode = !selectionMode
+                                if (selectionMode) selectionPage = pagerState.currentPage
+                            }) {
+                                Icon(
+                                    Icons.Filled.SelectAll,
+                                    contentDescription = stringResource(R.string.select_text),
+                                )
+                            }
                             IconButton(onClick = {
                                 if (vm.searchActive) vm.closeSearch() else vm.searchActive = true
                             }) {
@@ -158,19 +184,30 @@ fun PdfViewerScreen(
                         .padding(vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    if (selectionMode) {
+                        Text(
+                            text = stringResource(R.string.select_text_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                    }
                     Text(
                         text = stringResource(
                             R.string.page_indicator,
-                            pagerState.currentPage + 1,
+                            currentPage + 1,
                             vm.pageCount,
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (vm.pageCount > 1) {
                         Slider(
-                            value = pagerState.currentPage.toFloat(),
+                            value = currentPage.toFloat(),
                             onValueChange = { value ->
-                                scope.launch { pagerState.animateScrollToPage(value.toInt()) }
+                                if (selectionMode) {
+                                    selectionPage = value.toInt()
+                                } else {
+                                    scope.launch { pagerState.animateScrollToPage(value.toInt()) }
+                                }
                             },
                             valueRange = 0f..(vm.pageCount - 1).toFloat(),
                             modifier = Modifier
@@ -191,13 +228,40 @@ fun PdfViewerScreen(
         ) {
             when {
                 vm.loading -> CircularProgressIndicator()
-                vm.loadError || vm.pageCount == 0 -> Text(stringResource(R.string.error_open_pdf))
-                else -> HorizontalPager(state = pagerState) { page ->
-                    PageItem(
-                        vm = vm,
-                        page = page,
-                        onSingleTap = { chromeVisible = !chromeVisible },
-                    )
+                vm.loadError || vm.pageCount == 0 -> Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Text(stringResource(R.string.error_open_pdf))
+                    if (vm.loadErrorDetail.isNotBlank()) {
+                        SelectionContainer {
+                            Text(
+                                vm.loadErrorDetail,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                            )
+                        }
+                    }
+                }
+                else -> if (selectionMode) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        PageItem(
+                            vm = vm,
+                            page = currentPage,
+                            selectionMode = true,
+                            onSingleTap = { chromeVisible = !chromeVisible },
+                        )
+                    }
+                } else {
+                    HorizontalPager(state = pagerState) { page ->
+                        PageItem(
+                            vm = vm,
+                            page = page,
+                            selectionMode = false,
+                            onSingleTap = { chromeVisible = !chromeVisible },
+                        )
+                    }
                 }
             }
         }
@@ -229,29 +293,39 @@ fun PdfViewerScreen(
 private fun PageItem(
     vm: PdfViewerViewModel,
     page: Int,
+    selectionMode: Boolean,
     onSingleTap: () -> Unit,
 ) {
-    var zoomed by remember(page) { mutableStateOf(false) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val pageSize = vm.pageSizes.getOrNull(page) ?: (595f to 842f)
+        val rawSize = vm.pageSizes.getOrNull(page) ?: (595f to 842f)
+        val pageSize = (rawSize.first.takeIf { it > 0f } ?: 595f) to (rawSize.second.takeIf { it > 0f } ?: 842f)
         val fit = minOf(maxWidth.value / pageSize.first, maxHeight.value / pageSize.second)
-        val renderScale = fit * if (zoomed) ZOOM_SCALE else BASE_RENDER_SCALE
+            .coerceAtLeast(0.1f)
+        val renderScale = fit * BASE_RENDER_SCALE
         val searchVersion = vm.hits.size
-        var bitmap by remember(page, zoomed) { mutableStateOf<ImageBitmap?>(null) }
-        var failed by remember(page, zoomed) { mutableStateOf(false) }
+        var bitmap by remember(page) { mutableStateOf<ImageBitmap?>(null) }
+        var failed by remember(page) { mutableStateOf(false) }
+        var textRuns by remember(page) { mutableStateOf<List<TextRun>>(emptyList()) }
 
-        LaunchedEffect(page, zoomed, searchVersion) {
+        LaunchedEffect(page, searchVersion) {
             failed = false
             val result = vm.renderPage(page, renderScale, vm.highlightsForPage(page))
             bitmap = result
             if (result == null) failed = true
         }
 
+        LaunchedEffect(page) {
+            textRuns = vm.textRunsForPage(page)
+        }
+
         ZoomablePage(
             bitmap = bitmap,
             failed = failed,
-            zoomed = zoomed,
-            onZoomToggle = { zoomed = !zoomed },
+            textRuns = textRuns,
+            pageWidth = pageSize.first,
+            pageHeight = pageSize.second,
+            errorDetail = if (failed) vm.lastRenderError else "",
+            noTextHint = selectionMode,
             onSingleTap = onSingleTap,
         )
     }
