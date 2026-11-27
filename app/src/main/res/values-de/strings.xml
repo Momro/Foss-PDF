@@ -23,4 +23,8 @@
     <string name="error_render_page">Diese Seite konnte nicht gerendert werden</string>
     <string name="error_rename">Datei konnte nicht umbenannt werden</string>
     <string name="error_picker">Datei-Picker ist nicht verf\u00fcgbar</string>
+    <string name="select_text">Text markieren</string>
+    <string name="select_text_hint">Lange dr\u00fccken zum Markieren, dann kopieren</string>
+    <string name="no_text_on_page">Auf dieser Seite ist kein Text ausw\u00e4hlbar</string>
+    <string name="close">Schlie\u00dfen</string>
 </resources>

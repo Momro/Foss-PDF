@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -87,8 +91,15 @@ fun PdfViewerScreen(
 
     var chromeVisible by remember { mutableStateOf(true) }
     var renameDialog by remember { mutableStateOf(false) }
+    var selectionMode by remember { mutableStateOf(false) }
+    var pageText by remember { mutableStateOf<List<TextRun>>(emptyList()) }
 
     val pagerState = rememberPagerState(pageCount = { vm.pageCount })
+
+    LaunchedEffect(pagerState.currentPage, vm.pageCount) {
+        val page = pagerState.currentPage.coerceIn(0, (vm.pageCount - 1).coerceAtLeast(0))
+        pageText = if (vm.pageCount > 0) vm.textRunsForPage(page) else emptyList()
+    }
 
     LaunchedEffect(uri) {
         recents.add(uri.toString(), vm.fileName.ifBlank { uri.lastPathSegment ?: "PDF" })
@@ -124,6 +135,12 @@ fun PdfViewerScreen(
                             }
                         },
                         actions = {
+                            IconButton(onClick = { selectionMode = true }) {
+                                Icon(
+                                    Icons.Filled.SelectAll,
+                                    contentDescription = stringResource(R.string.select_text),
+                                )
+                            }
                             IconButton(onClick = {
                                 if (vm.searchActive) vm.closeSearch() else vm.searchActive = true
                             }) {
@@ -220,6 +237,45 @@ fun PdfViewerScreen(
                 }
             }
         }
+    }
+
+    if (selectionMode) {
+        AlertDialog(
+            onDismissRequest = { selectionMode = false },
+            title = { Text(stringResource(R.string.select_text)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.select_text_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    SelectionContainer {
+                        Column(
+                            modifier = Modifier
+                                .heightIn(max = 420.dp)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            if (pageText.isEmpty()) {
+                                Text(stringResource(R.string.no_text_on_page))
+                            }
+                            for (run in pageText) {
+                                Text(
+                                    text = run.text,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectionMode = false }) {
+                    Text(stringResource(R.string.close))
+                }
+            },
+        )
     }
 
     if (renameDialog) {

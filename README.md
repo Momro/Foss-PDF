@@ -6,7 +6,8 @@ Einfache Open-Source-PDF-Reader-App für Android (Kotlin + Jetpack Compose, PDFB
 
 - PDF über den System-Dateipicker öffnen (Liste „Zuletzt geöffnet")
 - Blättern per Wischgesten
-- Doppel-Tipp zoomt die aktuelle Seite (einfacher Tap blendet die Bedienung aus/ein)
+- Doppel-Tipp zoomt die aktuelle Seite, Zwei-Finger-Pinch zoomt stufenlos (einfacher Tap blendet die Bedienung aus/ein)
+- Text markieren & kopieren: unsichtbare, selektierbare Textebene über der Seite plus „Text markieren“-Dialog (lange drücken → kopieren)
 - Volltextsuche mit Trefferzähler, Vor/Zurück und Hervorhebung im Dokument
 - PDF über das Android-Share-Sheet teilen
 - PDF direkt umbenennen

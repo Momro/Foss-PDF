@@ -23,4 +23,8 @@
     <string name="error_render_page">This page could not be rendered</string>
     <string name="error_rename">Could not rename the file</string>
     <string name="error_picker">File picker is not available</string>
+    <string name="select_text">Select text</string>
+    <string name="select_text_hint">Long-press to mark text, then copy</string>
+    <string name="no_text_on_page">No selectable text on this page</string>
+    <string name="close">Close</string>
 </resources>
