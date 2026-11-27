@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         installCrashHandler()
         val crashReport = readCrashReport()
-        val viewUri = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.data
+        val viewUri = externalViewUri(intent)
         val initialScreen: Screen = viewUri?.let { Screen.Viewer(it) } ?: Screen.Home
         setContent {
             FossPdfTheme {
@@ -81,9 +81,19 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.action == Intent.ACTION_VIEW) {
-            externalUri = intent.data
+        externalUri = externalViewUri(intent)
+    }
+
+    private fun externalViewUri(intent: Intent?): Uri? {
+        val uri = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.data ?: return null
+        try {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        } catch (_: Exception) {
         }
+        return uri
     }
 
     private fun installCrashHandler() {

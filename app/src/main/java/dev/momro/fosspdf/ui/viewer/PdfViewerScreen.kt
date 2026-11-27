@@ -59,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.momro.fosspdf.R
 import dev.momro.fosspdf.data.RecentRepository
 import dev.momro.fosspdf.pdf.PdfViewerViewModel
+import dev.momro.fosspdf.pdf.TextRun
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -86,8 +87,13 @@ fun PdfViewerScreen(
 
     var chromeVisible by remember { mutableStateOf(true) }
     var renameDialog by remember { mutableStateOf(false) }
+    var pageZoomed by remember { mutableStateOf(false) }
 
     val pagerState = rememberPagerState(pageCount = { vm.pageCount })
+
+    LaunchedEffect(pageZoomed) {
+        pagerState.userScrollEnabled = !pageZoomed
+    }
 
     LaunchedEffect(uri) {
         recents.add(uri.toString(), vm.fileName.ifBlank { uri.lastPathSegment ?: "PDF" })
@@ -214,6 +220,7 @@ fun PdfViewerScreen(
                     PageItem(
                         vm = vm,
                         page = page,
+                        onZoomChanged = { pageZoomed = it },
                         onSingleTap = { chromeVisible = !chromeVisible },
                     )
                 }
@@ -247,6 +254,7 @@ fun PdfViewerScreen(
 private fun PageItem(
     vm: PdfViewerViewModel,
     page: Int,
+    onZoomChanged: (Boolean) -> Unit,
     onSingleTap: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -258,6 +266,7 @@ private fun PageItem(
         val searchVersion = vm.hits.size
         var bitmap by remember(page) { mutableStateOf<ImageBitmap?>(null) }
         var failed by remember(page) { mutableStateOf(false) }
+        var textRuns by remember(page) { mutableStateOf<List<TextRun>>(emptyList()) }
 
         LaunchedEffect(page, searchVersion) {
             failed = false
@@ -266,10 +275,18 @@ private fun PageItem(
             if (result == null) failed = true
         }
 
+        LaunchedEffect(page) {
+            textRuns = vm.textRunsForPage(page)
+        }
+
         ZoomablePage(
             bitmap = bitmap,
             failed = failed,
+            textRuns = textRuns,
+            pageWidth = pageSize.first,
+            pageHeight = pageSize.second,
             errorDetail = if (failed) vm.lastRenderError else "",
+            onZoomChanged = onZoomChanged,
             onSingleTap = onSingleTap,
         )
     }
