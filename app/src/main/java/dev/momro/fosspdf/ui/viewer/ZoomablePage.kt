@@ -1,7 +1,6 @@
 package dev.momro.fosspdf.ui.viewer
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -69,35 +68,32 @@ fun ZoomablePage(
                 }
             }
             .pointerInput(Unit) {
-                awaitEachGesture {
-                    awaitPointerEventScope {
-                        var prevDistance = -1f
-                        var baseScale = 1f
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            if (event.changes.any { it.isConsumed }) break
-                            val active = event.changes.filter { it.pressed }
-                            if (active.size >= 2) {
-                                val dx = active[0].position.x - active[1].position.x
-                                val dy = active[0].position.y - active[1].position.y
-                                val distance = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
-                                if (prevDistance > 0f) {
-                                    val newScale = (baseScale * distance / prevDistance).coerceIn(1f, MAX_SCALE)
-                                    if (newScale > 1f) {
-                                        scale = newScale
-                                    } else {
-                                        scale = 1f
-                                        offset = Offset.Zero
-                                    }
-                                    active.forEach { it.consume() }
+                awaitPointerEventScope {
+                    var prevDistance = -1f
+                    var baseScale = 1f
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        if (event.changes.any { it.isConsumed }) continue
+                        val active = event.changes.filter { it.pressed }
+                        if (active.size >= 2) {
+                            val dx = active[0].position.x - active[1].position.x
+                            val dy = active[0].position.y - active[1].position.y
+                            val distance = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+                            if (prevDistance > 0f) {
+                                val newScale = (baseScale * distance / prevDistance).coerceIn(1f, MAX_SCALE)
+                                if (newScale > 1f) {
+                                    scale = newScale
                                 } else {
-                                    baseScale = scale
+                                    scale = 1f
+                                    offset = Offset.Zero
                                 }
-                                prevDistance = distance
+                                active.forEach { it.consume() }
                             } else {
-                                prevDistance = -1f
+                                baseScale = scale
                             }
-                            if (active.isEmpty()) break
+                            prevDistance = distance
+                        } else {
+                            prevDistance = -1f
                         }
                     }
                 }
