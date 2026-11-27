@@ -1,5 +1,6 @@
 package dev.momro.fosspdf.ui.home
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -52,7 +53,7 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
         }
     }
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    val handlePicked: (Uri?) -> Unit = { uri ->
         if (uri != null) {
             try {
                 context.contentResolver.takePersistableUriPermission(
@@ -62,6 +63,30 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
             } catch (_: Exception) {
             }
             onOpenPdf(uri)
+        }
+    }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), handlePicked)
+    val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent(), handlePicked)
+
+    val launchPicker = {
+        try {
+            picker.launch(arrayOf("*/*"))
+        } catch (_: ActivityNotFoundException) {
+            try {
+                getContent.launch("*/*")
+            } catch (_: Exception) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.error_picker),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        } catch (_: Exception) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.error_picker),
+                Toast.LENGTH_LONG,
+            ).show()
         }
     }
 
@@ -81,19 +106,7 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    try {
-                        picker.launch(arrayOf("*/*"))
-                    } catch (e: Exception) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.error_picker),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                },
-            ) {
+            FloatingActionButton(onClick = launchPicker) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.open_pdf))
             }
         },

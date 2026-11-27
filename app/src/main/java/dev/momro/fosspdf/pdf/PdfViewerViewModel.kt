@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.InputStream
 
 class PdfViewerViewModel(
@@ -61,8 +62,9 @@ class PdfViewerViewModel(
         fileName = displayName()
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                openStream().use { stream ->
-                    val doc = PDDocument.load(checkNotNull(stream))
+                val input = openStream() ?: throw FileNotFoundException("cannot open $uri")
+                input.use { stream ->
+                    val doc = PDDocument.load(stream)
                     document = doc
                     renderer = PDFRenderer(doc)
                     val sizes = ArrayList<Pair<Float, Float>>(doc.numberOfPages)

@@ -2,12 +2,13 @@
 
 ## PDF öffnen
 
-- In-App: `HomeScreen` nutzt SAF (`ActivityResultContracts.OpenDocument`, MIME `*/*`), nimmt persistierbare Lese-Berechtigung (`takePersistableUriPermission`) und öffnet den Viewer.
+- In-App: `HomeScreen` nutzt SAF (`OpenDocument` mit `*/*`), Fallback auf `GetContent("*/*")` wenn kein Handler für `OpenDocument` existiert (manche Geräte), Toast bei Fehler. Persistierbare Lese-Berechtigung wird genommen (`takePersistableUriPermission`).
+- Screen-Wechsel: `MainActivity` hält `screen` als Activity-Level-`mutableStateOf` und setzt es direkt in `onCreate` **und** `onNewIntent` (keine `LaunchedEffect`-Umleitung — die kann hängen bleiben, wenn die App im Hintergrund ist).
 - Von außen (Dateimanager/Browser): `AndroidManifest.xml` hat mehrere `VIEW`-Intent-Filter:
   1. nur MIME-Typen (`application/pdf`, `application/x-pdf`) – matcht getypte `content:`/`file:`-URIs,
   2. `scheme content/file + host * + pathPattern .*\.pdf` **ohne** MIME – matcht ungetypte `.pdf`-URIs,
   3. `scheme + mimeType application/octet-stream + pathPattern .*\.pdf` – falsch deklarierte PDFs.
-  Dazu `launchMode="singleTop"` (damit `onNewIntent` feuert), `takePersistableUriPermission`-Versuch in `MainActivity.externalViewUri()` und in `PdfViewerViewModel.openStream()` ein `file://`-Fallback (direkter `FileInputStream`), falls der ContentResolver die URI nicht öffnen kann.
+  Dazu `launchMode="singleTop"` (damit `onNewIntent` feuert), `takePersistableUriPermission`-Versuch in `MainActivity.externalViewUri()` und in `PdfViewerViewModel.openStream()` ein `file://`-Fallback (direkter `FileInputStream`), falls der ContentResolver die URI nicht öffnen kann; ist gar kein Stream öffnenbar, wirft der Load eine `FileNotFoundException("cannot open <uri>")` — die landet als `loadErrorDetail` auf dem Fehler-Screen (diagnostizierbar).
 
 ## Rendern & Blättern
 

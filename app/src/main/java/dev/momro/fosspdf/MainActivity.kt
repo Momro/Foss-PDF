@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -34,7 +33,7 @@ import java.io.File
 
 class MainActivity : ComponentActivity() {
 
-    private var externalUri by mutableStateOf<Uri?>(null)
+    private var screen by mutableStateOf<Screen>(Screen.Home)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +41,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         installCrashHandler()
         val crashReport = readCrashReport()
-        val viewUri = externalViewUri(intent)
-        val initialScreen: Screen = viewUri?.let { Screen.Viewer(it) } ?: Screen.Home
+        screen = externalViewUri(intent)?.let { Screen.Viewer(it) } ?: Screen.Home
         setContent {
             FossPdfTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -56,13 +54,6 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     } else {
-                        var screen by mutableStateOf(initialScreen)
-                        LaunchedEffect(externalUri) {
-                            externalUri?.let {
-                                screen = Screen.Viewer(it)
-                                externalUri = null
-                            }
-                        }
                         when (val current = screen) {
                             is Screen.Home -> HomeScreen(
                                 onOpenPdf = { uri -> screen = Screen.Viewer(uri) },
@@ -81,7 +72,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        externalUri = externalViewUri(intent)
+        externalViewUri(intent)?.let { screen = Screen.Viewer(it) }
     }
 
     private fun externalViewUri(intent: Intent?): Uri? {
