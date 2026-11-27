@@ -61,7 +61,11 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
             TopAppBar(title = { Text(stringResource(R.string.app_name)) })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { picker.launch(arrayOf("application/pdf")) }) {
+            FloatingActionButton(
+                onClick = {
+                    picker.launch(arrayOf("application/pdf", "application/octet-stream"))
+                },
+            ) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.open_pdf))
             }
         },
