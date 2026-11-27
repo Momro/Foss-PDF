@@ -249,6 +249,7 @@ fun PdfViewerScreen(
                         PageItem(
                             vm = vm,
                             page = currentPage,
+                            selectionMode = true,
                             onSingleTap = { chromeVisible = !chromeVisible },
                         )
                     }
@@ -257,6 +258,7 @@ fun PdfViewerScreen(
                         PageItem(
                             vm = vm,
                             page = page,
+                            selectionMode = false,
                             onSingleTap = { chromeVisible = !chromeVisible },
                         )
                     }
@@ -291,6 +293,7 @@ fun PdfViewerScreen(
 private fun PageItem(
     vm: PdfViewerViewModel,
     page: Int,
+    selectionMode: Boolean,
     onSingleTap: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -322,6 +325,7 @@ private fun PageItem(
             pageWidth = pageSize.first,
             pageHeight = pageSize.second,
             errorDetail = if (failed) vm.lastRenderError else "",
+            noTextHint = selectionMode,
             onSingleTap = onSingleTap,
         )
     }

@@ -27,7 +27,12 @@
 - `PdfTextLayer.kt`: `SpanStripper` (extends `PDFTextStripper`, `sortByPosition = true`) sammelt pro Wort `TextPosition`s; `buildTextRuns()` gruppiert sie zu Zeilen (`TextRun`: text/x/y/width/height in PDF-Punkten, y von oben). PDFBox ruft `writeString(word, positions)` pro Wort auf (`writeLine` in `PDFTextStripper`).
 - `ZoomablePage.PageTextLayer`: pro Zeile ein `Text(color = Color.Transparent)` in einer `SelectionContainer`, positioniert per `Modifier.offset { IntOffset }` mit `fit`-Skalierung (letterbox wie `ContentScale.Fit`), fontSize = `heightDir * fit`. Textebene liegt über dem Bitmap und skaliert/pannt mit (`graphicsLayer`).
 - Auswahlmodus: Top-Bar-Button („Text markieren“, `Icons.Filled.SelectAll`) schaltet in `PdfViewerScreen` in einen Modus, der die Seite **ohne `HorizontalPager`** rendert (nur statische Seite, Seitenwahl über Slider). Dadurch hat kein scrollable-Vorfahre die Chance, das Pointer-Down in der Initial-Pass zu konsumieren – Long-press-Selection direkt auf der Seite funktioniert zuverlässig. (Hintergrund: Compose-Selection bricht ab, wenn das Down bereits konsumiert ist; im Pager kann das passieren.)
-- Long-press → System-Toolbar mit Kopieren. Für reine Scan-PDFs (kein Text) gibt es nichts zu selektieren.
+- Long-press → System-Toolbar mit Kopieren. Für reine Scan-PDFs (kein Text) gibt es nichts zu selektieren; im Auswahlmodus wird dann ein Hinweis auf der Seite angezeigt (`no_text_on_page`).
+- Extraktions-Robustheit: `heightDir`/`widthDirAdj` können 0 sein → Fallback auf `fontSize` (sonst Fontsize 0 = unsichtbar/nicht traf-fähig).
+
+## Version in der App anzeigen
+
+- `HomeScreen`: Top-Bar-Titel ist eine `Column` mit App-Name + `v<versionName>` (über `PackageManager.getPackageInfo(...).versionName`, try/catch → "?"). So sieht man sofort, welche Version installiert ist.
 
 ## Volltextsuche
 

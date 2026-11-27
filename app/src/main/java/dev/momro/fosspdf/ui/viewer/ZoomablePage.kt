@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +53,7 @@ fun ZoomablePage(
     pageWidth: Float = 595f,
     pageHeight: Float = 842f,
     errorDetail: String = "",
+    noTextHint: Boolean = false,
     onSingleTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -176,6 +178,14 @@ fun ZoomablePage(
                 }
             }
             bitmap == null -> CircularProgressIndicator(modifier = Modifier.size(48.dp))
+        }
+        if (bitmap != null && textRuns.isEmpty() && noTextHint) {
+            Text(
+                text = stringResource(R.string.no_text_on_page),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(16.dp),
+            )
         }
     }
 }

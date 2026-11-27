@@ -35,8 +35,8 @@ private class SpanStripper : PDFTextStripper() {
                     text = tp.unicode,
                     x = tp.xDirAdj,
                     y = tp.yDirAdj,
-                    width = tp.widthDirAdj,
-                    height = tp.heightDir,
+                    width = tp.widthDirAdj.takeIf { it > 0f } ?: 1f,
+                    height = tp.heightDir.takeIf { it > 0f } ?: tp.fontSize.coerceAtLeast(1f),
                 )
             )
         }

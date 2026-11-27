@@ -43,6 +43,14 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
     val context = LocalContext.current
     val recents = remember { RecentRepository(context.applicationContext) }
     val recentList by recents.recents.collectAsState(initial = emptyList())
+    val versionName = remember {
+        try {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?"
+        } catch (_: Exception) {
+            "?"
+        }
+    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -59,7 +67,18 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.app_name)) })
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(stringResource(R.string.app_name))
+                        Text(
+                            text = "v$versionName",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+            )
         },
         floatingActionButton = {
             FloatingActionButton(

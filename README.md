@@ -11,6 +11,11 @@ Einfache Open-Source-PDF-Reader-App für Android (Kotlin + Jetpack Compose, PDFB
 - Volltextsuche mit Trefferzähler, Vor/Zurück und Hervorhebung im Dokument
 - PDF über das Android-Share-Sheet teilen
 - PDF direkt umbenennen
+- App-Version wird im Home-Top-Bar angezeigt (Paket-`versionName`)
+
+## Entwicklung / Doku
+
+- High-Level-Doku (Architektur, Feature-Umsetzung, Releases & CI) liegt als Wiki-Entwurf unter `docs/wiki/` und wird ins GitHub-Wiki gespiegelt.
 
 Die App ist zweisprachig (Deutsch/Englisch, je nach Systemsprache).
 
