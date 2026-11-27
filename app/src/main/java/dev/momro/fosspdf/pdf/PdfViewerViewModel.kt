@@ -91,7 +91,7 @@ class PdfViewerViewModel(
                 if (highlights.isNotEmpty()) {
                     val canvas = Canvas(bitmap)
                     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = Color.argb(110, 255, 213, 79)
+                        color = Color.argb(110, 51, 181, 229)
                         style = Paint.Style.FILL
                     }
                     for (rect in highlights) {
