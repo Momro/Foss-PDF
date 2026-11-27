@@ -14,7 +14,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,16 +52,11 @@ fun ZoomablePage(
     pageWidth: Float = 595f,
     pageHeight: Float = 842f,
     errorDetail: String = "",
-    onZoomChanged: (zoomed: Boolean) -> Unit = {},
     onSingleTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
-
-    LaunchedEffect(scale > ZOOM_EPSILON) {
-        onZoomChanged(scale > ZOOM_EPSILON)
-    }
 
     Box(
         modifier = modifier
@@ -100,7 +94,7 @@ fun ZoomablePage(
                                     val newScale = (scale * zoom).coerceIn(1f, MAX_SCALE)
                                     val pivot = Offset(size.width / 2f, size.height / 2f)
                                     var newOffset =
-                                        offset + (scale - newScale) * (centroid - pivot) + pan
+                                        offset + (centroid - pivot) * (scale - newScale) + pan
                                     if (newScale <= 1f) {
                                         newOffset = Offset.Zero
                                     } else {

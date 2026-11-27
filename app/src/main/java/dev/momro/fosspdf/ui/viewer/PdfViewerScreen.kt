@@ -87,13 +87,8 @@ fun PdfViewerScreen(
 
     var chromeVisible by remember { mutableStateOf(true) }
     var renameDialog by remember { mutableStateOf(false) }
-    var pageZoomed by remember { mutableStateOf(false) }
 
     val pagerState = rememberPagerState(pageCount = { vm.pageCount })
-
-    LaunchedEffect(pageZoomed) {
-        pagerState.userScrollEnabled = !pageZoomed
-    }
 
     LaunchedEffect(uri) {
         recents.add(uri.toString(), vm.fileName.ifBlank { uri.lastPathSegment ?: "PDF" })
@@ -220,7 +215,6 @@ fun PdfViewerScreen(
                     PageItem(
                         vm = vm,
                         page = page,
-                        onZoomChanged = { pageZoomed = it },
                         onSingleTap = { chromeVisible = !chromeVisible },
                     )
                 }
@@ -254,7 +248,6 @@ fun PdfViewerScreen(
 private fun PageItem(
     vm: PdfViewerViewModel,
     page: Int,
-    onZoomChanged: (Boolean) -> Unit,
     onSingleTap: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -286,7 +279,6 @@ private fun PageItem(
             pageWidth = pageSize.first,
             pageHeight = pageSize.second,
             errorDetail = if (failed) vm.lastRenderError else "",
-            onZoomChanged = onZoomChanged,
             onSingleTap = onSingleTap,
         )
     }
