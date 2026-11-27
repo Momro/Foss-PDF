@@ -1,8 +1,9 @@
 package dev.momro.fosspdf.ui.viewer
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.awaitPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.momro.fosspdf.R
+import kotlin.math.sqrt
 
 const val ZOOM_SCALE = 2.5f
 private const val MAX_SCALE = 5f
@@ -59,16 +62,44 @@ fun ZoomablePage(
                 )
             }
             .pointerInput(Unit) {
-                detectTransformGestures(
-                    consume = { scale > 1f },
-                ) { _, pan, zoom, _ ->
-                    val newScale = (scale * zoom).coerceIn(1f, MAX_SCALE)
-                    if (newScale > 1f) {
-                        scale = newScale
-                        offset += pan
-                    } else {
-                        scale = 1f
-                        offset = Offset.Zero
+                detectDragGestures { change, dragAmount ->
+                    if (scale > 1f) {
+                        change.consume()
+                        offset += dragAmount
+                    }
+                }
+            }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitPointerEventScope {
+                        var prevDistance = -1f
+                        var baseScale = 1f
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.changes.any { it.isConsumed }) break
+                            val active = event.changes.filter { it.pressed }
+                            if (active.size >= 2) {
+                                val dx = active[0].position.x - active[1].position.x
+                                val dy = active[0].position.y - active[1].position.y
+                                val distance = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+                                if (prevDistance > 0f) {
+                                    val newScale = (baseScale * distance / prevDistance).coerceIn(1f, MAX_SCALE)
+                                    if (newScale > 1f) {
+                                        scale = newScale
+                                    } else {
+                                        scale = 1f
+                                        offset = Offset.Zero
+                                    }
+                                    active.forEach { it.consume() }
+                                } else {
+                                    baseScale = scale
+                                }
+                                prevDistance = distance
+                            } else {
+                                prevDistance = -1f
+                            }
+                            if (active.isEmpty()) break
+                        }
                     }
                 }
             },
