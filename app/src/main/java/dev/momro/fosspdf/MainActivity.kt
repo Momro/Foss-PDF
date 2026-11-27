@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import dev.momro.fosspdf.ui.home.HomeScreen
 import dev.momro.fosspdf.ui.theme.FossPdfTheme
 import dev.momro.fosspdf.ui.viewer.PdfViewerScreen
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PDFBoxResourceLoader.init(applicationContext)
         enableEdgeToEdge()
         installCrashHandler()
         val crashReport = readCrashReport()

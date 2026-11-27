@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -200,11 +201,13 @@ fun PdfViewerScreen(
                 ) {
                     Text(stringResource(R.string.error_open_pdf))
                     if (vm.loadErrorDetail.isNotBlank()) {
-                        Text(
-                            vm.loadErrorDetail,
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                        )
+                        SelectionContainer {
+                            Text(
+                                vm.loadErrorDetail,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                            )
+                        }
                     }
                 }
                 else -> HorizontalPager(state = pagerState) { page ->

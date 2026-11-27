@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -89,11 +90,13 @@ fun ZoomablePage(
             ) {
                 Text(stringResource(R.string.error_render_page))
                 if (errorDetail.isNotBlank()) {
-                    Text(
-                        errorDetail,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                    )
+                    SelectionContainer {
+                        Text(
+                            errorDetail,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp,
+                        )
+                    }
                 }
             }
             else -> CircularProgressIndicator(modifier = Modifier.size(48.dp))
