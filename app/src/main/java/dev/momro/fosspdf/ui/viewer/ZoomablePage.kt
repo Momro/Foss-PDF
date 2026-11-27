@@ -199,10 +199,12 @@ private fun PageTextLayer(
 ) {
     val density = LocalDensity.current
     BoxWithConstraints(modifier) {
-        val fit = minOf(maxWidth.value / pageWidth, maxHeight.value / pageHeight)
+        val maxW = with(density) { maxWidth.toPx() }
+        val maxH = with(density) { maxHeight.toPx() }
+        val fit = minOf(maxW / pageWidth, maxH / pageHeight)
             .coerceAtLeast(0.1f)
-        val dx = (maxWidth.value - pageWidth * fit) / 2f
-        val dy = (maxHeight.value - pageHeight * fit) / 2f
+        val dx = (maxW - pageWidth * fit) / 2f
+        val dy = (maxH - pageHeight * fit) / 2f
         Box(modifier = Modifier.fillMaxSize()) {
             for (run in runs) {
                 Text(
