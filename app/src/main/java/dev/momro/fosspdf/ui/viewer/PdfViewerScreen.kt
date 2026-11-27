@@ -12,11 +12,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -92,14 +89,9 @@ fun PdfViewerScreen(
     var chromeVisible by remember { mutableStateOf(true) }
     var renameDialog by remember { mutableStateOf(false) }
     var selectionMode by remember { mutableStateOf(false) }
-    var pageText by remember { mutableStateOf<List<TextRun>>(emptyList()) }
+    var selectionPage by remember { mutableStateOf(0) }
 
     val pagerState = rememberPagerState(pageCount = { vm.pageCount })
-
-    LaunchedEffect(pagerState.currentPage, vm.pageCount) {
-        val page = pagerState.currentPage.coerceIn(0, (vm.pageCount - 1).coerceAtLeast(0))
-        pageText = if (vm.pageCount > 0) vm.textRunsForPage(page) else emptyList()
-    }
 
     LaunchedEffect(uri) {
         recents.add(uri.toString(), vm.fileName.ifBlank { uri.lastPathSegment ?: "PDF" })
@@ -111,9 +103,19 @@ fun PdfViewerScreen(
 
     LaunchedEffect(vm.currentPage) {
         val target = vm.currentPage
-        if (target != pagerState.currentPage && target in 0 until vm.pageCount) {
-            pagerState.animateScrollToPage(target)
+        if (target in 0 until vm.pageCount) {
+            if (selectionMode) {
+                if (target != selectionPage) selectionPage = target
+            } else if (target != pagerState.currentPage) {
+                pagerState.animateScrollToPage(target)
+            }
         }
+    }
+
+    val currentPage = if (selectionMode) {
+        selectionPage.coerceIn(0, (vm.pageCount - 1).coerceAtLeast(0))
+    } else {
+        pagerState.currentPage
     }
 
     val showChrome = chromeVisible || vm.loadError
@@ -135,7 +137,10 @@ fun PdfViewerScreen(
                             }
                         },
                         actions = {
-                            IconButton(onClick = { selectionMode = true }) {
+                            IconButton(onClick = {
+                                selectionMode = !selectionMode
+                                if (selectionMode) selectionPage = pagerState.currentPage
+                            }) {
                                 Icon(
                                     Icons.Filled.SelectAll,
                                     contentDescription = stringResource(R.string.select_text),
@@ -179,19 +184,30 @@ fun PdfViewerScreen(
                         .padding(vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    if (selectionMode) {
+                        Text(
+                            text = stringResource(R.string.select_text_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                    }
                     Text(
                         text = stringResource(
                             R.string.page_indicator,
-                            pagerState.currentPage + 1,
+                            currentPage + 1,
                             vm.pageCount,
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (vm.pageCount > 1) {
                         Slider(
-                            value = pagerState.currentPage.toFloat(),
+                            value = currentPage.toFloat(),
                             onValueChange = { value ->
-                                scope.launch { pagerState.animateScrollToPage(value.toInt()) }
+                                if (selectionMode) {
+                                    selectionPage = value.toInt()
+                                } else {
+                                    scope.launch { pagerState.animateScrollToPage(value.toInt()) }
+                                }
                             },
                             valueRange = 0f..(vm.pageCount - 1).toFloat(),
                             modifier = Modifier
@@ -228,54 +244,25 @@ fun PdfViewerScreen(
                         }
                     }
                 }
-                else -> HorizontalPager(state = pagerState) { page ->
-                    PageItem(
-                        vm = vm,
-                        page = page,
-                        onSingleTap = { chromeVisible = !chromeVisible },
-                    )
+                else -> if (selectionMode) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        PageItem(
+                            vm = vm,
+                            page = currentPage,
+                            onSingleTap = { chromeVisible = !chromeVisible },
+                        )
+                    }
+                } else {
+                    HorizontalPager(state = pagerState) { page ->
+                        PageItem(
+                            vm = vm,
+                            page = page,
+                            onSingleTap = { chromeVisible = !chromeVisible },
+                        )
+                    }
                 }
             }
         }
-    }
-
-    if (selectionMode) {
-        AlertDialog(
-            onDismissRequest = { selectionMode = false },
-            title = { Text(stringResource(R.string.select_text)) },
-            text = {
-                Column {
-                    Text(
-                        text = stringResource(R.string.select_text_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                    SelectionContainer {
-                        Column(
-                            modifier = Modifier
-                                .heightIn(max = 420.dp)
-                                .verticalScroll(rememberScrollState()),
-                        ) {
-                            if (pageText.isEmpty()) {
-                                Text(stringResource(R.string.no_text_on_page))
-                            }
-                            for (run in pageText) {
-                                Text(
-                                    text = run.text,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { selectionMode = false }) {
-                    Text(stringResource(R.string.close))
-                }
-            },
-        )
     }
 
     if (renameDialog) {
