@@ -249,18 +249,17 @@ private fun PageItem(
     page: Int,
     onSingleTap: () -> Unit,
 ) {
-    var zoomed by remember(page) { mutableStateOf(false) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val rawSize = vm.pageSizes.getOrNull(page) ?: (595f to 842f)
         val pageSize = (rawSize.first.takeIf { it > 0f } ?: 595f) to (rawSize.second.takeIf { it > 0f } ?: 842f)
         val fit = minOf(maxWidth.value / pageSize.first, maxHeight.value / pageSize.second)
             .coerceAtLeast(0.1f)
-        val renderScale = fit * if (zoomed) ZOOM_SCALE else BASE_RENDER_SCALE
+        val renderScale = fit * BASE_RENDER_SCALE
         val searchVersion = vm.hits.size
-        var bitmap by remember(page, zoomed) { mutableStateOf<ImageBitmap?>(null) }
-        var failed by remember(page, zoomed) { mutableStateOf(false) }
+        var bitmap by remember(page) { mutableStateOf<ImageBitmap?>(null) }
+        var failed by remember(page) { mutableStateOf(false) }
 
-        LaunchedEffect(page, zoomed, searchVersion) {
+        LaunchedEffect(page, searchVersion) {
             failed = false
             val result = vm.renderPage(page, renderScale, vm.highlightsForPage(page))
             bitmap = result
@@ -271,8 +270,6 @@ private fun PageItem(
             bitmap = bitmap,
             failed = failed,
             errorDetail = if (failed) vm.lastRenderError else "",
-            zoomed = zoomed,
-            onZoomToggle = { zoomed = !zoomed },
             onSingleTap = onSingleTap,
         )
     }

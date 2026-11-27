@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -126,7 +127,9 @@ private fun CrashScreen(report: String, onDismiss: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Foss PDF ist abgestürzt:", style = MaterialTheme.typography.titleLarge)
-        Text(report, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
+        SelectionContainer {
+            Text(report, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
+        }
         Button(onClick = onDismiss) { Text("Meldung löschen & neu starten") }
     }
 }

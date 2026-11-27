@@ -1,8 +1,8 @@
 package dev.momro.fosspdf.ui.viewer
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +13,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,23 +32,18 @@ import androidx.compose.ui.unit.sp
 import dev.momro.fosspdf.R
 
 const val ZOOM_SCALE = 2.5f
+private const val MAX_SCALE = 5f
 
 @Composable
 fun ZoomablePage(
     bitmap: ImageBitmap?,
     failed: Boolean,
     errorDetail: String = "",
-    zoomed: Boolean,
-    onZoomToggle: () -> Unit,
     onSingleTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
-    val scale = if (zoomed) ZOOM_SCALE else 1f
-
-    LaunchedEffect(zoomed) {
-        if (!zoomed) offset = Offset.Zero
-    }
 
     Box(
         modifier = modifier
@@ -58,13 +52,24 @@ fun ZoomablePage(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onSingleTap() },
-                    onDoubleTap = { onZoomToggle() },
+                    onDoubleTap = {
+                        scale = if (scale > 1f) 1f else ZOOM_SCALE
+                        if (scale == 1f) offset = Offset.Zero
+                    },
                 )
             }
-            .pointerInput(zoomed) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    if (zoomed) offset += dragAmount
+            .pointerInput(Unit) {
+                detectTransformGestures(
+                    consume = { scale > 1f },
+                ) { _, pan, zoom, _ ->
+                    val newScale = (scale * zoom).coerceIn(1f, MAX_SCALE)
+                    if (newScale > 1f) {
+                        scale = newScale
+                        offset += pan
+                    } else {
+                        scale = 1f
+                        offset = Offset.Zero
+                    }
                 }
             },
         contentAlignment = Alignment.Center,

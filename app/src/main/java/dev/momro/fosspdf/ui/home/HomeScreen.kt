@@ -51,7 +51,7 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
-            } catch (_: SecurityException) {
+            } catch (_: Exception) {
             }
             onOpenPdf(uri)
         }
