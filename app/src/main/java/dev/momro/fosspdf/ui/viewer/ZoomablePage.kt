@@ -3,8 +3,11 @@ package dev.momro.fosspdf.ui.viewer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -23,7 +26,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.momro.fosspdf.R
 
 const val ZOOM_SCALE = 2.5f
@@ -32,6 +37,7 @@ const val ZOOM_SCALE = 2.5f
 fun ZoomablePage(
     bitmap: ImageBitmap?,
     failed: Boolean,
+    errorDetail: String = "",
     zoomed: Boolean,
     onZoomToggle: () -> Unit,
     onSingleTap: () -> Unit,
@@ -76,7 +82,20 @@ fun ZoomablePage(
                         translationY = offset.y,
                     ),
             )
-            failed -> Text(stringResource(R.string.error_render_page))
+            failed -> Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(16.dp),
+            ) {
+                Text(stringResource(R.string.error_render_page))
+                if (errorDetail.isNotBlank()) {
+                    Text(
+                        errorDetail,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
             else -> CircularProgressIndicator(modifier = Modifier.size(48.dp))
         }
     }

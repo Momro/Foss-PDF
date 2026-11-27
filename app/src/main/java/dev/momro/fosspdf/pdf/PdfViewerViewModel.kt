@@ -35,6 +35,10 @@ class PdfViewerViewModel(
         private set
     var loadError by mutableStateOf(false)
         private set
+    var loadErrorDetail by mutableStateOf("")
+        private set
+    var lastRenderError by mutableStateOf("")
+        private set
     var pageCount by mutableStateOf(0)
         private set
     var pageSizes by mutableStateOf<List<Pair<Float, Float>>>(emptyList())
@@ -72,6 +76,7 @@ class PdfViewerViewModel(
             } catch (e: Throwable) {
                 withContext(Dispatchers.Main) {
                     loadError = true
+                    loadErrorDetail = e.toString()
                     loading = false
                 }
             }
@@ -108,6 +113,7 @@ class PdfViewerViewModel(
                 if (highlights.isEmpty()) bitmapCache.put(key, image)
                 image
             } catch (e: Throwable) {
+                lastRenderError = e.toString()
                 null
             }
         }

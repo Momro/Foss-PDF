@@ -2,6 +2,7 @@ package dev.momro.fosspdf.ui.home
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -63,7 +64,15 @@ fun HomeScreen(onOpenPdf: (Uri) -> Unit) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    picker.launch(arrayOf("application/pdf", "application/octet-stream"))
+                    try {
+                        picker.launch(arrayOf("*/*"))
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.error_picker),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
                 },
             ) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.open_pdf))

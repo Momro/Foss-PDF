@@ -22,4 +22,5 @@
     <string name="error_open_pdf">Diese PDF konnte nicht geöffnet werden</string>
     <string name="error_render_page">Diese Seite konnte nicht gerendert werden</string>
     <string name="error_rename">Datei konnte nicht umbenannt werden</string>
+    <string name="error_picker">Datei-Picker ist nicht verf\u00fcgbar</string>
 </resources>

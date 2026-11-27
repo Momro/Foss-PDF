@@ -22,4 +22,5 @@
     <string name="error_open_pdf">Could not open this PDF</string>
     <string name="error_render_page">This page could not be rendered</string>
     <string name="error_rename">Could not rename the file</string>
+    <string name="error_picker">File picker is not available</string>
 </resources>

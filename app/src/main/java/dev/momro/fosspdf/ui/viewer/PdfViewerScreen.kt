@@ -48,8 +48,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -191,7 +193,20 @@ fun PdfViewerScreen(
         ) {
             when {
                 vm.loading -> CircularProgressIndicator()
-                vm.loadError || vm.pageCount == 0 -> Text(stringResource(R.string.error_open_pdf))
+                vm.loadError || vm.pageCount == 0 -> Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Text(stringResource(R.string.error_open_pdf))
+                    if (vm.loadErrorDetail.isNotBlank()) {
+                        Text(
+                            vm.loadErrorDetail,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp,
+                        )
+                    }
+                }
                 else -> HorizontalPager(state = pagerState) { page ->
                     PageItem(
                         vm = vm,
@@ -233,8 +248,10 @@ private fun PageItem(
 ) {
     var zoomed by remember(page) { mutableStateOf(false) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val pageSize = vm.pageSizes.getOrNull(page) ?: (595f to 842f)
+        val rawSize = vm.pageSizes.getOrNull(page) ?: (595f to 842f)
+        val pageSize = (rawSize.first.takeIf { it > 0f } ?: 595f) to (rawSize.second.takeIf { it > 0f } ?: 842f)
         val fit = minOf(maxWidth.value / pageSize.first, maxHeight.value / pageSize.second)
+            .coerceAtLeast(0.1f)
         val renderScale = fit * if (zoomed) ZOOM_SCALE else BASE_RENDER_SCALE
         val searchVersion = vm.hits.size
         var bitmap by remember(page, zoomed) { mutableStateOf<ImageBitmap?>(null) }
@@ -250,6 +267,7 @@ private fun PageItem(
         ZoomablePage(
             bitmap = bitmap,
             failed = failed,
+            errorDetail = if (failed) vm.lastRenderError else "",
             zoomed = zoomed,
             onZoomToggle = { zoomed = !zoomed },
             onSingleTap = onSingleTap,
